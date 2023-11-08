@@ -1,5 +1,5 @@
                         # MAIN PART OF GAME
-
+import threading
 import time
 import arcade
 from spaceship import Spaceship
@@ -13,13 +13,12 @@ class Game ( arcade.Window ) :
     def __init__ ( self ) :
         super().__init__ ( title = "INTERSTELLAR GAME" )
         self.game_background = arcade.load_texture ( ":resources:images/backgrounds/stars.png" )
-        self.gameover_background = arcade.load_texture ( "image game over.png" )
+        self.gameover_background = arcade.load_texture ( "2\image game over.png" )
         self.mode = None
         self.score = 0
         self.me = Spaceship ( self )
         self.enemy_list = []
         self.enemy_speed = 3
-        self.timer = time.time ()
         self.life_list = []
         self.life_x = 15
         self.life_number = 3
@@ -29,6 +28,9 @@ class Game ( arcade.Window ) :
             self.life_x += 25
         self.fire_voice = arcade.load_sound ( ":resources:sounds/laser4.wav" )
         self.explode = arcade.load_sound ( ":resources:sounds/gameover3.wav" )
+
+        self.threads = threading.Thread ( target=self.create_enemy )
+        self.threads.start ()
 
 
     def on_draw ( self ) :
@@ -78,6 +80,14 @@ class Game ( arcade.Window ) :
             self.me.change_x = 0
 
 
+    def create_enemy ( self ) :
+        while True :
+            new_enemy = Enemy ( self , self.enemy_speed )
+            self.enemy_list.append ( new_enemy )
+            self.enemy_speed += 0.1
+            time.sleep ( 3 )
+
+
     def on_update ( self , delta_time ) :
 
         self.me.move ()
@@ -98,11 +108,6 @@ class Game ( arcade.Window ) :
             if bullet.center_y >= self.height :
                 self.me.bullet_list.remove ( bullet )
 
-        if time.time () >= self.timer + 3 :
-            new_enemy = Enemy ( self , self.enemy_speed )
-            self.enemy_list.append ( new_enemy )
-            self.enemy_speed += 0.1
-            self.timer = time.time ()
 
         if self.life_number == 0 :
             self.mode = "Game_over"
